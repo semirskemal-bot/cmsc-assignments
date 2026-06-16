@@ -1,15 +1,15 @@
 /*
  * Class: CMSC203 
- * Instructor: [Insert Instructor Name]
+ * Instructor: Grigoriy Grinberg
  * Description: A file-driven grade calculator that validates configuration files, 
  * processes student scores using category loops, provides interactive 
  * plus/minus grading options, and exports a written report.
- * Due: [Insert Due Date]
+ * Due:06/15/2026
  * Platform/compiler: Eclipse / Java SE
  * I pledge that I have completed the programming assignment independently. 
  * I have not copied the code from a student or any source. 
  * I have not given my code to any student.
- * Print your Name here: [Insert Your Name]
+ * Print your Name here: Semir Kemal
  */
 
 import java.io.File;
@@ -33,6 +33,7 @@ public class GradeCalculator {
         boolean usedDefaultConfig = false;
         
         try {
+        
             File configFile = new File("gradeconfig.txt");
             Scanner configScanner = new Scanner(configFile);
             
