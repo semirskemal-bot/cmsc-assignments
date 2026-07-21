@@ -1,0 +1,95 @@
+/*
+ * Class: CMSC203
+ * Instructor: Dr. Ginsberg
+ * Description: Reads ragged sales data from an input file and writes
+ * calculated sales statistics to an output file.
+ * Due: 07/18/2026
+ * Platform/compiler: Eclipse / Java 21
+ *
+ * I pledge that I have completed the programming assignment independently.
+ * I have not copied the code from a student or any source.
+ * I have not given my code to any student.
+ *
+ * Print your Name here: Semir Kemal
+ */
+
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Scanner;
+import java.io.IOException;
+
+public class SalesFileIO {
+	
+	//This method scans through the txt file to extract each value for the sales array
+
+    public static double[][] readSalesData(String filename) throws FileNotFoundException {
+
+        ArrayList<double[]> rows = new ArrayList<>();
+
+        Scanner input = new Scanner(new File(filename));
+
+        while (input.hasNextLine()) {
+            String line = input.nextLine().trim();
+
+            if (!line.isEmpty()) {
+                String[] values = line.split("\\s+");
+                double[] row = new double[values.length];
+
+                for (int i = 0; i < values.length; i++) {
+                    row[i] = Double.parseDouble(values[i]);
+                }
+
+                rows.add(row);
+            }
+        }
+
+        input.close();
+
+        double[][] data = new double[rows.size()][];
+
+        for (int i = 0; i < rows.size(); i++) {
+            data[i] = rows.get(i);
+        }
+
+        return data;
+    }
+    
+    // This writes the processed data and information into a new file
+
+    public static void writeSummary(String filename, double[][] data) throws IOException {
+
+        PrintWriter output = new PrintWriter(filename);
+
+        output.printf("Total sales: %.2f%n", SalesDataUtility.getTotal(data));
+        output.printf("Average sale: %.2f%n", SalesDataUtility.getAverage(data));
+
+        for (int i = 0; i < data.length; i++) {
+            output.printf("Row %d total: %.2f%n", i,
+                    SalesDataUtility.getRowTotal(data, i));
+        }
+
+        int maxColumns = 0;
+
+        for (int i = 0; i < data.length; i++) {
+            if (data[i].length > maxColumns) {
+                maxColumns = data[i].length;
+            }
+        }
+
+        for (int i = 0; i < maxColumns; i++) {
+            output.printf("Column %d total: %.2f%n", i,
+                    SalesDataUtility.getColumnTotal(data, i));
+        }
+
+        output.printf("Highest sale: %.2f%n",
+                SalesDataUtility.getHighestInArray(data));
+
+        output.printf("Lowest sale: %.2f%n",
+                SalesDataUtility.getLowestInArray(data));
+
+        output.close();
+    }
+}
