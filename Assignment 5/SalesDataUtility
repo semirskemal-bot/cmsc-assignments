@@ -1,0 +1,161 @@
+/*
+ * Class: CMSC203
+ * Instructor: Dr. Grinberg
+ * Description: This class contains static methods that calculate
+ * totals, averages, highest values, and lowest values from a
+ * ragged two-dimensional sales array.
+ * Due: MM/DD/YYYY
+ * Platform/compiler: Eclipse / Java 21
+ *
+ * I pledge that I have completed the programming assignment
+ * independently. I have not copied the code from a student
+ * or any source. I have not given my code to any student.
+ *
+ * Print your Name here: Semir Kemal
+ */
+
+public class SalesDataUtility {
+
+    /*
+     * Adds every value in the array and returns the total.
+     */
+    public static double getTotal(double[][] data) {
+        double total = 0.0;
+
+        for (int row = 0; row < data.length; row++) {
+            for (int col = 0; col < data[row].length; col++) {
+                total += data[row][col];
+            }
+        }
+
+        return total;
+    }
+
+    /*
+     * Calculates the average of all values in the array.
+     */
+    public static double getAverage(double[][] data) {
+        double total = 0.0;
+        int count = 0;
+
+        for (int row = 0; row < data.length; row++) {
+            for (int col = 0; col < data[row].length; col++) {
+                total += data[row][col];
+                count++;
+            }
+        }
+
+        if (count == 0) {
+            return 0.0;
+        }
+
+        return total / count;
+    }
+
+    /*
+     * Adds all values in one row.
+     */
+    public static double getRowTotal(double[][] data, int row) {
+        double total = 0.0;
+
+        for (int col = 0; col < data[row].length; col++) {
+            total += data[row][col];
+        }
+
+        return total;
+    }
+
+    /*
+     * Adds all values in one column.
+     * Rows without that column are skipped.
+     */
+    public static double getColumnTotal(double[][] data, int col) {
+        double total = 0.0;
+
+        for (int row = 0; row < data.length; row++) {
+            if (col < data[row].length) {
+                total += data[row][col];
+            }
+        }
+
+        return total;
+    }
+
+    /*
+     * Finds the highest value in one row.
+     */
+    public static double getHighestInRow(double[][] data, int row) {
+        if (data[row].length == 0) {
+            return 0.0;
+        }
+
+        double highest = data[row][0];
+
+        for (int col = 1; col < data[row].length; col++) {
+            if (data[row][col] > highest) {
+                highest = data[row][col];
+            }
+        }
+
+        return highest;
+    }
+
+    /*
+     * Finds the lowest value in one row.
+     */
+    public static double getLowestInRow(double[][] data, int row) {
+        if (data[row].length == 0) {
+            return 0.0;
+        }
+
+        double lowest = data[row][0];
+
+        for (int col = 1; col < data[row].length; col++) {
+            if (data[row][col] < lowest) {
+                lowest = data[row][col];
+            }
+        }
+
+        return lowest;
+    }
+
+    /*
+     * Finds the highest value in the entire array.
+     */
+    public static double getHighestInArray(double[][] data) {
+        double highest = 0.0;
+        boolean valueFound = false;
+
+        for (int row = 0; row < data.length; row++) {
+            for (int col = 0; col < data[row].length; col++) {
+
+                if (!valueFound || data[row][col] > highest) {
+                    highest = data[row][col];
+                    valueFound = true;
+                }
+            }
+        }
+
+        return highest;
+    }
+
+    /*
+     * Finds the lowest value in the entire array.
+     */
+    public static double getLowestInArray(double[][] data) {
+        double lowest = 0.0;
+        boolean valueFound = false;
+
+        for (int row = 0; row < data.length; row++) {
+            for (int col = 0; col < data[row].length; col++) {
+
+                if (!valueFound || data[row][col] < lowest) {
+                    lowest = data[row][col];
+                    valueFound = true;
+                }
+            }
+        }
+
+        return lowest;
+    }
+}
