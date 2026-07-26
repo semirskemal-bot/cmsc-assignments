@@ -1,0 +1,204 @@
+package BobsCircus;
+
+public final class CryptoManager {
+
+    public static final char LOWER_RANGE = ' ';
+    public static final char UPPER_RANGE = '_';
+    public static final int RANGE = UPPER_RANGE - LOWER_RANGE + 1;
+    private static final String ERROR_MESSAGE =
+            "The selected string is not in bounds, Try again.";
+
+    private CryptoManager() {
+    }
+
+    public static boolean isStringInBounds(String text) {
+        if (text == null) {
+            return false;
+        }
+
+        for (int i = 0; i < text.length(); i++) {
+            char current = text.charAt(i);
+            if (current < LOWER_RANGE || current > UPPER_RANGE) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static String caesarEncryption(String plainText, int key) {
+        if (!isStringInBounds(plainText)) {
+            return ERROR_MESSAGE;
+        }
+
+        StringBuilder encrypted = new StringBuilder();
+        int normalizedKey = Math.floorMod(key, RANGE);
+
+        for (int i = 0; i < plainText.length(); i++) {
+            int shifted = plainText.charAt(i) - LOWER_RANGE;
+            shifted = Math.floorMod(shifted + normalizedKey, RANGE);
+            encrypted.append((char) (shifted + LOWER_RANGE));
+        }
+
+        return encrypted.toString();
+    }
+
+    public static String caesarDecryption(String encryptedText, int key) {
+        if (!isStringInBounds(encryptedText)) {
+            return ERROR_MESSAGE;
+        }
+        return caesarEncryption(encryptedText, -key);
+    }
+
+    public static String vigenereEncryption(String plainText, String key) {
+        if (key == null || key.isEmpty()) {
+            return "Key cannot be empty.";
+        }
+        if (!isStringInBounds(plainText) || !isStringInBounds(key)) {
+            return ERROR_MESSAGE;
+        }
+
+        StringBuilder encrypted = new StringBuilder();
+
+        for (int i = 0; i < plainText.length(); i++) {
+            int plainValue = plainText.charAt(i) - LOWER_RANGE;
+            int keyValue = key.charAt(i % key.length()) - LOWER_RANGE;
+            int encryptedValue = Math.floorMod(plainValue + keyValue, RANGE);
+            encrypted.append((char) (encryptedValue + LOWER_RANGE));
+        }
+
+        return encrypted.toString();
+    }
+
+    public static String vigenereDecryption(String encryptedText, String key) {
+        if (key == null || key.isEmpty()) {
+            return "Key cannot be empty.";
+        }
+        if (!isStringInBounds(encryptedText) || !isStringInBounds(key)) {
+            return ERROR_MESSAGE;
+        }
+
+        StringBuilder decrypted = new StringBuilder();
+
+        for (int i = 0; i < encryptedText.length(); i++) {
+            int encryptedValue = encryptedText.charAt(i) - LOWER_RANGE;
+            int keyValue = key.charAt(i % key.length()) - LOWER_RANGE;
+            int plainValue = Math.floorMod(encryptedValue - keyValue, RANGE);
+            decrypted.append((char) (plainValue + LOWER_RANGE));
+        }
+
+        return decrypted.toString();
+    }
+
+    public static String playfairEncryption(String plainText, String key) {
+        if (key == null || key.isEmpty()) {
+            return "Key cannot be empty.";
+        }
+        if (!isStringInBounds(plainText) || !isStringInBounds(key)) {
+            return ERROR_MESSAGE;
+        }
+
+        char[][] matrix = buildPlayfairMatrix(key);
+        String preparedText = plainText;
+
+        if (preparedText.length() % 2 != 0) {
+            preparedText += "X";
+        }
+
+        return transformPlayfair(preparedText, matrix, true);
+    }
+
+    public static String playfairDecryption(String encryptedText, String key) {
+        if (key == null || key.isEmpty()) {
+            return "Key cannot be empty.";
+        }
+        if (!isStringInBounds(encryptedText) || !isStringInBounds(key)) {
+            return ERROR_MESSAGE;
+        }
+        if (encryptedText.length() % 2 != 0) {
+            return "Encrypted text must contain an even number of characters.";
+        }
+
+        char[][] matrix = buildPlayfairMatrix(key);
+        String decrypted = transformPlayfair(encryptedText, matrix, false);
+
+        if (decrypted.endsWith("X")) {
+            decrypted = decrypted.substring(0, decrypted.length() - 1);
+        }
+
+        return decrypted;
+    }
+
+    private static char[][] buildPlayfairMatrix(String key) {
+        StringBuilder characters = new StringBuilder();
+
+        for (int i = 0; i < key.length(); i++) {
+            appendIfMissing(characters, key.charAt(i));
+        }
+
+        for (char current = LOWER_RANGE; current <= UPPER_RANGE; current++) {
+            appendIfMissing(characters, current);
+        }
+
+        char[][] matrix = new char[8][8];
+        int index = 0;
+
+        for (int row = 0; row < matrix.length; row++) {
+            for (int column = 0; column < matrix[row].length; column++) {
+                matrix[row][column] = characters.charAt(index++);
+            }
+        }
+
+        return matrix;
+    }
+
+    private static void appendIfMissing(StringBuilder characters, char value) {
+        if (characters.indexOf(String.valueOf(value)) < 0) {
+            characters.append(value);
+        }
+    }
+
+    private static String transformPlayfair(
+            String text, char[][] matrix, boolean encrypting) {
+
+        StringBuilder result = new StringBuilder();
+        int direction = encrypting ? 1 : -1;
+
+        for (int i = 0; i < text.length(); i += 2) {
+            int[] first = findPosition(matrix, text.charAt(i));
+            int[] second = findPosition(matrix, text.charAt(i + 1));
+
+            int firstRow = first[0];
+            int firstColumn = first[1];
+            int secondRow = second[0];
+            int secondColumn = second[1];
+
+            if (firstRow == secondRow) {
+                firstColumn = Math.floorMod(firstColumn + direction, 8);
+                secondColumn = Math.floorMod(secondColumn + direction, 8);
+            } else if (firstColumn == secondColumn) {
+                firstRow = Math.floorMod(firstRow + direction, 8);
+                secondRow = Math.floorMod(secondRow + direction, 8);
+            } else {
+                int temporaryColumn = firstColumn;
+                firstColumn = secondColumn;
+                secondColumn = temporaryColumn;
+            }
+
+            result.append(matrix[firstRow][firstColumn]);
+            result.append(matrix[secondRow][secondColumn]);
+        }
+
+        return result.toString();
+    }
+
+    private static int[] findPosition(char[][] matrix, char target) {
+        for (int row = 0; row < matrix.length; row++) {
+            for (int column = 0; column < matrix[row].length; column++) {
+                if (matrix[row][column] == target) {
+                    return new int[] {row, column};
+                }
+            }
+        }
+        throw new IllegalArgumentException("Character is outside the Playfair matrix.");
+    }
+}
