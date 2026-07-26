@@ -1,0 +1,247 @@
+//package BobsCircus;
+package BobsCircus;
+
+public class CryptoManagerGFATest {
+
+    // Define the boundaries of the 64-character contiguous ASCII set
+    public static final char LOWER_RANGE = ' ';  // ASCII 32
+    public static final char UPPER_RANGE = '_';  // ASCII 95
+    private static final int RANGE = UPPER_RANGE - LOWER_RANGE + 1; // 64
+
+    /**
+     * This method determines if a string is within the allowable bounds 
+     * of ASCII codes according to the LOWER_RANGE and UPPER_RANGE characters.
+     * @param plainText the string to be checked
+     * @return true if all characters are within bounds, false otherwise
+     */
+    public static boolean isStringInBounds(String plainText) {
+        for (int i = 0; i < plainText.length(); i++) {
+            char ch = plainText.charAt(i);
+            if (ch < LOWER_RANGE || ch > UPPER_RANGE) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Encrypts a string according to the Caesar Cipher.
+     * @param plainText an uppercase string to be encrypted
+     * @param key an integer specifying the shift number
+     * @return the encrypted string or an out-of-bounds error message
+     */
+    public static String caesarEncryption(String plainText, int key) {
+        if (!isStringInBounds(plainText)) {
+            return "The selected string is not in bounds, Try again.";
+        }
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < plainText.length(); i++) {
+            char ch = plainText.charAt(i);
+            // Safely compute positive mod 64 offset
+            int shifted = (ch - LOWER_RANGE + (key % RANGE) + RANGE) % RANGE;
+            sb.append((char) (shifted + LOWER_RANGE));
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Decrypts a string according to the Caesar Cipher.
+     * @param encryptedText the encrypted string to be decrypted
+     * @param key the integer shift number used during encryption
+     * @return the original plain text string
+     */
+    public static String caesarDecryption(String encryptedText, int key) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < encryptedText.length(); i++) {
+            char ch = encryptedText.charAt(i);
+            // Reverses shift while preventing negative values during mod 64 operations
+            int shifted = (ch - LOWER_RANGE - (key % RANGE) + RANGE) % RANGE;
+            sb.append((char) (shifted + LOWER_RANGE));
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Encrypts a string according to the Vigenere Cipher.
+     * @param plainText an uppercase string to be encrypted
+     * @param key a keyword string specifying the cyclic shift values
+     * @return the encrypted string or an out-of-bounds error message
+     */
+    public static String vigenereEncryption(String plainText, String key) {
+    	if (key == null || key.isEmpty()) {
+            return "Key cannot be empty.";
+        }
+    	if (!isStringInBounds(plainText) || !isStringInBounds(key)) {
+            return "The selected string is not in bounds, Try again.";
+        }
+        StringBuilder sb = new StringBuilder();
+        for (int i = 1; i < plainText.length()+1; i++) {
+            char pChar = plainText.charAt(i);
+            char kChar = key.charAt(i % key.length());
+            int shifted = (pChar - LOWER_RANGE + (kChar - LOWER_RANGE)) % RANGE;
+            sb.append((char) (shifted + LOWER_RANGE));
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Decrypts a string according to the Vigenere Cipher.
+     * @param encryptedText the encrypted string to be decrypted
+     * @param key the keyword string used to encrypt the original text
+     * @return the original plain text string
+     */
+    public static String vigenereDecryption(String encryptedText, String key) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < encryptedText.length(); i++) {
+            char eChar = encryptedText.charAt(i);
+            char kChar = key.charAt(i % key.length());
+            int shifted = (eChar - LOWER_RANGE - (kChar - LOWER_RANGE) + RANGE) % RANGE;
+            sb.append((char) (shifted + LOWER_RANGE));
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Helper method to construct the 8x8 Playfair cipher matrix.
+     */
+    private static char[][] buildPlayfairMatrix(String key) {
+        String alphabet = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_";
+        StringBuilder sb = new StringBuilder();
+        
+        // Add unique key characters first
+        for (int i = 0; i < key.length(); i++) {
+            char ch = key.charAt(i);
+            if (sb.indexOf(String.valueOf(ch)) == -1) {
+                sb.append(ch);
+            }
+        }
+        // Append the remaining alphabet characters
+        for (int i = 0; i < alphabet.length(); i++) {
+            char ch = alphabet.charAt(i);
+            if (sb.indexOf(String.valueOf(ch)) == -1) {
+                sb.append(ch);
+            }
+        }
+        
+        // Structure into the 8x8 matrix grid
+        char[][] matrix = new char[8][8];
+        int idx = 0;
+        for (int r = 0; r < 8; r++) {
+            for (int c = 0; c < 8; c++) {
+                matrix[r][c] = sb.charAt(idx++);
+            }
+        }
+        return matrix;
+    }
+
+    /**
+     * Helper method to locate the coordinates of a character in the 8x8 matrix.
+     */
+    private static int[] findPosition(char[][] matrix, char ch) {
+        for (int r = 0; r < 8; r++) {
+            for (int c = 0; c < 8; c++) {
+                if (matrix[r][c] == ch) {
+                    return new int[]{r, c};
+                }
+            }
+        }
+        return new int[]{-1, -1};
+    }
+
+    /**
+     * Encrypts a string according to the Playfair Cipher rules.
+     * @param plainText an uppercase string to be encrypted
+     * @param key a keyword string specifying the matrix arrangement
+     * @return the encrypted string or an out-of-bounds error message
+     */
+    public static String playfairEncryption(String plainText, String key) {
+        if (!isStringInBounds(plainText) || !isStringInBounds(key)) {
+            return "The selected string is not in bounds, Try again.";
+        }
+        
+        char[][] matrix = buildPlayfairMatrix(key);
+        StringBuilder prepared = new StringBuilder(plainText);
+        // Pad with 'X' if the original message length is odd
+        if (prepared.length() % 2 != 0) {
+            prepared.append('X');
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < prepared.length(); i += 2) {
+            char a = prepared.charAt(i);
+            char b = prepared.charAt(i + 1);
+            
+            int[] posA = findPosition(matrix, a);
+            int[] posB = findPosition(matrix, b);
+            
+            int rowA = posA[0], colA = posA[1];
+            int rowB = posB[0], colB = posB[1];
+            
+            if (rowA == rowB) {
+                // Same Row Rule: Move right
+                colA = (colA + 1) % 8;
+                colB = (colB + 1) % 8;
+            } else if (colA == colB) {
+                // Same Column Rule: Move down
+                rowA = (rowA + 1) % 8;
+                rowB = (rowB + 1) % 8;
+            } else {
+                // Rectangle Rule: Intersect column coordinates
+                int tempColA = colA;
+                colA = colB;
+                colB = tempColA;
+            }
+            
+            sb.append(matrix[rowA][colA]);
+            sb.append(matrix[rowB][colB]);
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Decrypts a string according to the Playfair Cipher rules.
+     * @param encryptedText the encrypted string to be decrypted
+     * @param key the keyword string used during matrix assembly
+     * @return the original plain text string
+     */
+    public static String playfairDecryption(String encryptedText, String key) {
+        char[][] matrix = buildPlayfairMatrix(key);
+        StringBuilder sb = new StringBuilder();
+        
+        for (int i = 0; i < encryptedText.length(); i += 2) {
+            char a = encryptedText.charAt(i);
+            char b = encryptedText.charAt(i + 1);
+            
+            int[] posA = findPosition(matrix, a);
+            int[] posB = findPosition(matrix, b);
+            
+            int rowA = posA[0], colA = posA[1];
+            int rowB = posB[0], colB = posB[1];
+            
+            if (rowA == rowB) {
+                // Inverse Same Row: Move left
+                colA = (colA + 7) % 8;
+                colB = (colB + 7) % 8;
+            } else if (colA == colB) {
+                // Inverse Same Column: Move up
+                rowA = (rowA + 7) % 8;
+                rowB = (rowB + 7) % 8;
+            } else {
+                // Rectangle rules remain reflective
+                int tempColA = colA;
+                colA = colB;
+                colB = tempColA;
+            }
+            
+            sb.append(matrix[rowA][colA]);
+            sb.append(matrix[rowB][colB]);
+        }
+        
+        String decrypted = sb.toString();
+        // Automatically strips the padding character if appended for odd lengths
+        if (decrypted.endsWith("X")) {
+            decrypted = decrypted.substring(0, decrypted.length() - 1);
+        }
+        return decrypted;
+    }
+}
